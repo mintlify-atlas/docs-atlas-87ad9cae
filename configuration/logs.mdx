@@ -1,0 +1,88 @@
+---
+title: "Log display settings: timestamps, range, and tail"
+description: "Configure how lazydocker fetches and displays container logs, including time range filters, tail limits, and timestamp visibility."
+---
+
+The `logs` section of `config.yml` controls what lazydocker shows in the Logs tab for a selected container or service. You can limit how far back logs go, cap the number of lines fetched, and toggle timestamps on or off.
+
+```yaml
+logs:
+  timestamps: false
+  since: '60m'
+  tail: ''
+```
+
+## Options reference
+
+| Key          | Type   | Default  | Description                                                     |
+| ------------ | ------ | -------- | --------------------------------------------------------------- |
+| `timestamps` | bool   | `false`  | Prefix each log line with its timestamp                         |
+| `since`      | string | `"60m"`  | Only fetch logs from this time ago; set to `''` for all history |
+| `tail`       | string | `""`     | Show only the last N lines; set to e.g. `"200"` to limit output |
+
+## `timestamps`
+
+When set to `true`, each log line is prefixed with the time it was emitted. This is useful when you need to correlate events across services.
+
+```yaml
+logs:
+  timestamps: true
+```
+
+## `since`
+
+Controls how far back lazydocker fetches logs. The value is passed directly to `docker logs --since`, so it accepts any duration string that Docker understands (for example `30m`, `2h`, `1h30m`).
+
+Set `since` to an empty string to fetch the complete log history for the container:
+
+```yaml
+logs:
+  since: ''
+```
+
+<Warning>
+  Setting `since: ''` on containers with large log volumes can significantly slow down the Logs tab and increase memory usage. Use a sensible time window for day-to-day work.
+</Warning>
+
+<Tip>
+  The default `serviceLogs` command template also uses `--since=60m`. If you change `logs.since`, consider updating that template to match so the in-app and subprocess views are consistent.
+</Tip>
+
+## `tail`
+
+Limits the total number of log lines fetched, equivalent to `docker logs --tail N`. This is an alternative to `since` for capping output volume.
+
+```yaml
+logs:
+  tail: '200'
+```
+
+Leave `tail` as an empty string (the default) to let `since` be the only constraint.
+
+## Combining `since` and `tail`
+
+You can set both options at the same time. When both are specified, Docker applies `--since` first to filter by time, then `--tail` to limit the number of lines within that window.
+
+<CodeGroup>
+
+```yaml Show last 100 lines from the past 30 minutes
+logs:
+  timestamps: true
+  since: '30m'
+  tail: '100'
+```
+
+```yaml Show full log history, no line limit
+logs:
+  timestamps: false
+  since: ''
+  tail: ''
+```
+
+```yaml Show last 500 lines regardless of time
+logs:
+  since: ''
+  tail: '500'
+```
+
+</CodeGroup>

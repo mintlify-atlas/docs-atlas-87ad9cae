@@ -1,97 +1,56 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "lazydocker: A terminal UI for Docker and Compose"
+description: "lazydocker gives you a full overview of your Docker environment in one terminal window, with every common operation a single keypress away."
 ---
 
-## Setting up
+lazydocker is a terminal UI for Docker and Docker Compose that replaces a dozen scattered `docker` commands with a single, keyboard-driven interface. See all your containers, services, images, volumes, and networks at a glance — and act on them instantly.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install lazydocker via Homebrew, Scoop, Go, or binary release for your platform.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get lazydocker running and learn the essential keybindings in minutes.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Keybindings" icon="keyboard" href="/keybindings">
+    Complete reference for all keyboard shortcuts across every panel.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Configuration" icon="gear" href="/configuration/overview">
+    Customize themes, commands, log settings, graphs, and more via config.yml.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What you can do
 
-Everything you need to create world-class documentation.
+lazydocker puts every Docker operation within reach — no more memorizing flags or jumping between terminal windows.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={2}>
+  <Card title="Manage panels" icon="table-columns" href="/panels">
+    Navigate containers, services, images, volumes, and networks from one UI.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="Custom commands" icon="terminal" href="/custom-commands">
+    Define your own commands with Go templates and run them from the UI.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="Docker Compose" icon="layer-group" href="/guides/docker-compose">
+    Manage multi-service Compose projects: up, down, rebuild, and more.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Run in Docker" icon="docker" href="/guides/running-in-docker">
+    Run lazydocker itself inside a container for isolated environments.
   </Card>
-</Columns>
+</CardGroup>
 
-## Need inspiration?
+## Key features
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+- **Real-time status** — see container state, health, and resource usage live
+- **Log streaming** — follow logs per container or service, filtered by time
+- **ASCII graphs** — visualize CPU and memory usage directly in the terminal
+- **Attach & exec** — connect to running containers or open an interactive shell
+- **Bulk operations** — up, down, stop, pull, or build all services at once
+- **Custom commands** — extend lazydocker with your own Go-templated commands
+- **Mouse support** — click to navigate panels alongside keyboard shortcuts
+- **Image inspection** — browse ancestor layers and prune unused images
+- **Configurable** — theme colors, border style, command templates, and more
+
+<Note>
+  lazydocker requires Docker >= 29.0.0 (API >= 1.24). Docker Compose >= 1.23.2 is optional but recommended for service management.
+</Note>

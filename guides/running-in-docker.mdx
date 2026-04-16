@@ -1,0 +1,103 @@
+---
+title: "Run lazydocker inside a Docker container"
+description: "Run lazydocker as a Docker container using the lazyteam/lazydocker image, including ARM builds, config persistence, and alias setup."
+---
+
+You can run lazydocker itself inside a Docker container using the official `lazyteam/lazydocker` image. This is useful when you want to avoid a local binary install, or when working inside a containerized environment.
+
+## Basic usage
+
+```bash
+docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /yourpath:/.config/jesseduffield/lazydocker \
+  lazyteam/lazydocker
+```
+
+Replace `/yourpath` with a real directory on your host where lazydocker can store its configuration. The two volume mounts are required:
+
+| Mount | Purpose |
+|-------|---------|
+| `/var/run/docker.sock` | Lets lazydocker communicate with the Docker daemon |
+| `/yourpath:/.config/jesseduffield/lazydocker` | Persists your `config.yml` between runs |
+
+## Create an alias
+
+Add a shell alias so you can launch lazydocker with a short command:
+
+<CodeGroup>
+```bash Zsh
+echo "alias lzd='docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ~/.config/lazydocker:/.config/jesseduffield/lazydocker \
+  lazyteam/lazydocker'" >> ~/.zshrc
+source ~/.zshrc
+```
+
+```bash Bash
+echo "alias lzd='docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ~/.config/lazydocker:/.config/jesseduffield/lazydocker \
+  lazyteam/lazydocker'" >> ~/.bashrc
+source ~/.bashrc
+```
+</CodeGroup>
+
+## ARM devices
+
+The standard image targets amd64. For ARM hosts, build the image manually:
+
+<Tabs>
+  <Tab title="ARM 32-bit v6">
+    ```bash
+    docker build -t lazyteam/lazydocker \
+      --build-arg BASE_IMAGE_BUILDER=arm32v6/golang \
+      --build-arg GOARCH=arm \
+      --build-arg GOARM=6 \
+      https://github.com/jesseduffield/lazydocker.git
+    ```
+  </Tab>
+  <Tab title="ARM 32-bit v7">
+    ```bash
+    docker build -t lazyteam/lazydocker \
+      --build-arg BASE_IMAGE_BUILDER=arm32v7/golang \
+      --build-arg GOARCH=arm \
+      --build-arg GOARM=7 \
+      https://github.com/jesseduffield/lazydocker.git
+    ```
+  </Tab>
+  <Tab title="ARM 64-bit v8">
+    ```bash
+    docker build -t lazyteam/lazydocker \
+      --build-arg BASE_IMAGE_BUILDER=arm64v8/golang \
+      --build-arg GOARCH=arm64 \
+      https://github.com/jesseduffield/lazydocker.git
+    ```
+  </Tab>
+</Tabs>
+
+## Build for development
+
+To build the image from a local clone of the repository:
+
+```bash
+git clone https://github.com/jesseduffield/lazydocker.git
+cd lazydocker
+docker build -t lazyteam/lazydocker \
+    --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+    --build-arg VCS_REF=$(git rev-parse --short HEAD) \
+    --build-arg VERSION=$(git describe --abbrev=0 --tag) \
+    .
+```
+
+If you get a Docker binary compatibility error, add the host Docker version as a build argument:
+
+```bash
+docker build -t lazyteam/lazydocker \
+    --build-arg DOCKER_VERSION="v$(docker -v | cut -d" " -f3 | rev | cut -c 2- | rev)" \
+    .
+```
+
+<Warning>
+  When running lazydocker inside a Docker container, container **logs and CPU usage graphs may not be visible**. This is a known limitation of the containerized runtime environment.
+</Warning>

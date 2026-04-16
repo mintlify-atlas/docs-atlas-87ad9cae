@@ -1,0 +1,78 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "lazydocker",
+  "projectDescription": "A terminal UI for managing Docker containers, services, images, volumes, and networks from a single keyboard-driven interface.",
+  "theme": "aspen",
+  "primaryColor": "#848484",
+  "lightColor": "#141414",
+  "darkColor": "#cbcbcb",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Using lazydocker",
+            "pages": [
+              "keybindings",
+              "panels",
+              "custom-commands"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/overview",
+              "configuration/gui",
+              "configuration/logs",
+              "configuration/command-templates",
+              "configuration/stats-graphs",
+              "configuration/replacements"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/docker-compose",
+              "guides/running-in-docker",
+              "guides/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time container status overview across services, containers, images, volumes, and networks",
+    "Log streaming with filtering by time range and service",
+    "ASCII graphs for CPU and memory metrics with configurable stat paths",
+    "Attach, exec shell, restart, rebuild, and prune operations via single keypress",
+    "Custom commands with Go template support for containers and services",
+    "Bulk commands for operations across all services (up, down, stop, pull, build)",
+    "Mouse support with panel navigation and clickable UI elements",
+    "Docker Compose project management including up/down with volume handling",
+    "Image layer inspection and pruning",
+    "Configurable theming, keybindings, and command templates"
+  ],
+  "publicApiSurface": [
+    "lazydocker (binary entry point)",
+    "lazydocker -c / --config (print default config)",
+    "lazydocker -d / --debug (enable debug mode)",
+    "lazydocker -f / --file (specify alternate compose files)",
+    "lazydocker -p / --project (specify docker compose project name)",
+    "config.yml (user configuration file)",
+    "customCommands (containers, services, images, volumes, networks)",
+    "bulkCommands (services, containers, images, volumes)",
+    "commandTemplates (dockerCompose, restartService, upService, down, etc.)",
+    "stats.graphs (configurable ASCII metric graphs)",
+    "replacements.imageNamePrefixes (image name display overrides)"
+  ]
+}

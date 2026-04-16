@@ -1,0 +1,101 @@
+---
+title: "Managing Docker Compose projects with lazydocker"
+description: "Use lazydocker to manage multi-service Docker Compose projects: start, stop, rebuild, and monitor services from one terminal interface."
+---
+
+lazydocker automatically detects Docker Compose projects and displays a dedicated **Services** panel alongside the Containers panel. From there you can bring services up or down, rebuild images, stream logs, and run any compose command — all without leaving the terminal.
+
+## Detecting a Compose project
+
+When lazydocker starts, it runs `docker compose config --quiet` to check whether a compose file is present in the current directory. If the check passes, the Services panel appears. If not, lazydocker hides the Services panel and shows only standalone containers.
+
+Run lazydocker from the directory that contains your `docker-compose.yml`:
+
+```bash
+cd /path/to/your/project
+lazydocker
+```
+
+## Using multiple compose files
+
+Pass one or more `-f` flags to specify compose files explicitly:
+
+```bash
+lazydocker -f docker-compose.yml -f docker-compose.override.yml
+```
+
+For a permanent setup, override `commandTemplates.dockerCompose` in your config:
+
+```yaml
+commandTemplates:
+  dockerCompose: docker compose -f /path/to/docker-compose.yml -f /path/to/docker-compose.override.yml
+```
+
+All other command templates reference `{{ .DockerCompose }}`, so they automatically inherit the updated compose command.
+
+## Specifying a project name
+
+Use `-p` to set the Docker Compose project name:
+
+```bash
+lazydocker -p myproject
+```
+
+## Service operations
+
+With a service selected in the Services panel, these keys are available:
+
+| Key | Action |
+|-----|--------|
+| `u` | Up service (create and start) |
+| `S` | Start service |
+| `s` | Stop service |
+| `r` | Restart service |
+| `R` | View restart options |
+| `p` | Pause service |
+| `a` | Attach to service |
+| `m` | View service logs |
+| `E` | Exec shell in service container |
+| `d` | Remove service containers |
+| `b` | View bulk commands |
+| `c` | Run a custom command |
+| `w` | Open in browser (first HTTP port) |
+
+## Project-level operations
+
+These keys operate on the entire Compose project:
+
+| Key | Action |
+|-----|--------|
+| `U` | Up project (`docker compose up -d`) |
+| `D` | Down project (`docker compose down`) |
+
+Bulk commands (press `b`) provide additional project-wide operations: pull all images, build all services, down with volumes, and more.
+
+## Customizing command templates
+
+All compose commands are driven by templates you can override in `config.yml`. The `{{ .DockerCompose }}` variable expands to whatever you set in `commandTemplates.dockerCompose`.
+
+```yaml
+commandTemplates:
+  dockerCompose: docker compose
+  restartService: '{{ .DockerCompose }} restart {{ .Service.Name }}'
+  upService: '{{ .DockerCompose }} up -d {{ .Service.Name }}'
+  rebuildService: '{{ .DockerCompose }} up -d --build {{ .Service.Name }}'
+  recreateService: '{{ .DockerCompose }} up -d --force-recreate {{ .Service.Name }}'
+  down: '{{ .DockerCompose }} down'
+  downWithVolumes: '{{ .DockerCompose }} down --volumes'
+  serviceTop: '{{ .DockerCompose }} top {{ .Service.Name }}'
+```
+
+<Tip>
+  To use `docker-compose` (v1) instead of `docker compose` (v2), set `commandTemplates.dockerCompose: docker-compose`.
+</Tip>
+
+## Viewing compose configuration
+
+The Services panel includes a **Config** tab that runs `docker compose config` and displays the resolved configuration for your project — useful for debugging variable substitution and merge behavior across multiple compose files.
+
+<Note>
+  Changes to `commandTemplates` in `config.yml` take effect after restarting lazydocker.
+</Note>

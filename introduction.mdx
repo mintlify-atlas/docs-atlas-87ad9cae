@@ -1,0 +1,46 @@
+---
+title: "lazydocker: The lazier way to manage Docker"
+description: "lazydocker is a terminal UI for Docker and Docker Compose. Manage containers, services, images, volumes, and networks without memorizing commands."
+---
+
+lazydocker is a simple terminal UI for Docker and Docker Compose, written in Go. Instead of juggling multiple terminal windows and memorizing command syntax, you get a single interface where every common operation is one keypress away — with live log streaming, ASCII metrics graphs, and full mouse support.
+
+## Why lazydocker
+
+Managing containers by hand means a constant context-switch between `docker ps`, `docker-compose logs --follow`, `docker-compose restart`, and everything in between. If a service dies right after you restart it, you only find out by polling. If you want logs for just one service, you lose that terminal window for as long as you care about it.
+
+lazydocker solves this by putting the state of your entire Docker environment — running containers, service health, logs, CPU and memory graphs — into one persistent terminal panel. You can restart a container, tail its logs, exec into a shell, and prune unused images without ever leaving the UI or recalling flag syntax.
+
+## Requirements
+
+- Docker >= **29.0.0** (API >= **1.24**)
+- Docker Compose >= **1.23.2** (optional — only required for Compose workflows)
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="At-a-glance environment status" icon="layout-dashboard">
+    See every container and service state, health status, and resource usage in one view, updated in real time.
+  </Card>
+  <Card title="Live log streaming" icon="scroll-text">
+    Tail logs for any container or service directly in the main panel. Logs survive service restarts without re-running a command.
+  </Card>
+  <Card title="ASCII metrics graphs" icon="chart-line">
+    Visualize CPU and memory usage as live graphs. Customize which stats are graphed and their colors via the config file.
+  </Card>
+  <Card title="Container operations" icon="play">
+    Restart, stop, remove, pause, attach, or exec a shell in any container — all with a single keypress.
+  </Card>
+  <Card title="Image and volume management" icon="layers">
+    Inspect image layers, remove unused images, and prune volumes that are consuming disk space.
+  </Card>
+  <Card title="Custom commands" icon="terminal">
+    Define your own keybindings and shell commands in `config.yml`, templated with container and service names.
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<Card title="Install lazydocker" icon="download" href="/installation">
+  Get lazydocker running on macOS, Linux, or Windows using Homebrew, a binary release, Go, or Docker.
+</Card>

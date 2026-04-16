@@ -1,0 +1,141 @@
+---
+title: "Stats graphs: custom ASCII charts for container metrics"
+description: "Configure the stats collection window and define custom ASCII graphs for CPU, memory, network I/O, and any field in the RecordedStats struct."
+---
+
+The `stats` section of `config.yml` controls how lazydocker collects and visualizes container performance data in the Stats tab. You can adjust the collection window and define any number of ASCII graphs backed by any field in the `RecordedStats` struct.
+
+```yaml
+stats:
+  maxDuration: 3m
+  graphs:
+    - caption: CPU (%)
+      statPath: DerivedStats.CPUPercentage
+      color: cyan
+    - caption: Memory (%)
+      statPath: DerivedStats.MemoryPercentage
+      color: green
+```
+
+## `maxDuration`
+
+| Key           | Type     | Default | Description                                        |
+| ------------- | -------- | ------- | -------------------------------------------------- |
+| `maxDuration` | duration | `3m`    | How long lazydocker retains stats data in memory   |
+
+This value uses Go duration syntax: `30s`, `5m`, `1h`, etc. Longer durations mean more history in the graph but higher memory usage.
+
+```yaml
+stats:
+  maxDuration: 10m
+```
+
+## `graphs`
+
+`graphs` is a list of `GraphConfig` objects. Each entry creates one ASCII chart in the Stats tab. You can define as many graphs as you want.
+
+### Graph options
+
+| Key        | Type   | Default | Description                                                                 |
+| ---------- | ------ | ------- | --------------------------------------------------------------------------- |
+| `caption`  | string | —       | Label displayed above the graph                                             |
+| `statPath` | string | —       | Dot-separated path into the `RecordedStats` struct                          |
+| `color`    | string | —       | Graph line color (any color attribute)                                      |
+| `height`   | int    | —       | Height of the graph in ASCII character rows                                 |
+| `min`      | float  | —       | Minimum value for the Y axis; requires `minType: static` to take effect     |
+| `max`      | float  | —       | Maximum value for the Y axis; requires `maxType: static` to take effect     |
+| `minType`  | string | `""`    | `""` for dynamic scaling, `"static"` to use the `min` value                |
+| `maxType`  | string | `""`    | `""` for dynamic scaling, `"static"` to use the `max` value                |
+
+<Note>
+  You must set `minType: static` (or `maxType: static`) for a fixed `min`/`max` to apply. If `minType` is empty, lazydocker uses the minimum value in the current data window regardless of the `min` field.
+</Note>
+
+## Finding available stat paths
+
+The `statPath` field is a dot-separated path into the `RecordedStats` struct. The easiest way to discover available paths is to open lazydocker, select a container, and navigate to the **Stats** tab. The JSON shown there is a serialized `RecordedStats` value.
+
+To convert a JSON key to a `statPath`, PascalCase every segment:
+
+```
+ClientStats.blkio_stats.io_service_bytes_recursive
+→ ClientStats.BlkioStats.IoServiceBytesRecursive
+```
+
+Commonly useful paths:
+
+| Stat                   | `statPath`                                   |
+| ---------------------- | -------------------------------------------- |
+| CPU usage (%)          | `DerivedStats.CPUPercentage`                 |
+| Memory usage (%)       | `DerivedStats.MemoryPercentage`              |
+| Memory used (bytes)    | `ClientStats.MemoryStats.Usage`              |
+| Network bytes in       | `DerivedStats.NetworkRx`                     |
+| Network bytes out      | `DerivedStats.NetworkTx`                     |
+| Block I/O read         | `DerivedStats.ClientStats.BlkioStats`        |
+
+## Default graphs
+
+The two default graphs track CPU and memory as percentages:
+
+```yaml
+stats:
+  graphs:
+    - caption: CPU (%)
+      statPath: DerivedStats.CPUPercentage
+      color: cyan
+    - caption: Memory (%)
+      statPath: DerivedStats.MemoryPercentage
+      color: green
+```
+
+## Custom graph examples
+
+<CodeGroup>
+
+```yaml Add network I/O graphs
+stats:
+  maxDuration: 5m
+  graphs:
+    - caption: CPU (%)
+      statPath: DerivedStats.CPUPercentage
+      color: cyan
+    - caption: Memory (%)
+      statPath: DerivedStats.MemoryPercentage
+      color: green
+    - caption: Net in (bytes)
+      statPath: DerivedStats.NetworkRx
+      color: blue
+      height: 4
+    - caption: Net out (bytes)
+      statPath: DerivedStats.NetworkTx
+      color: magenta
+      height: 4
+```
+
+```yaml Fixed-scale CPU graph (0–100%)
+stats:
+  graphs:
+    - caption: CPU (%)
+      statPath: DerivedStats.CPUPercentage
+      color: cyan
+      min: 0
+      max: 100
+      minType: static
+      maxType: static
+      height: 8
+```
+
+```yaml Memory usage in bytes with taller chart
+stats:
+  graphs:
+    - caption: Memory (bytes)
+      statPath: ClientStats.MemoryStats.Usage
+      color: yellow
+      height: 10
+```
+
+</CodeGroup>
+
+<Tip>
+  Use `minType: static` and `maxType: static` with `min: 0` and `max: 100` for percentage graphs to keep the Y axis consistent as values change, rather than auto-scaling to the current range.
+</Tip>

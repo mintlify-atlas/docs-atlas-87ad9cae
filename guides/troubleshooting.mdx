@@ -1,0 +1,111 @@
+---
+title: "Troubleshooting common lazydocker issues"
+description: "Solutions for common lazydocker problems: missing logs, text selection, Services panel not appearing, config changes not taking effect, and more."
+---
+
+This page covers the most common issues you may encounter when running lazydocker and how to fix them.
+
+<AccordionGroup>
+  <Accordion title="Can't see container logs">
+    By default, lazydocker only shows logs from the last 60 minutes to avoid overloading your machine. If you open lazydocker and the logs panel looks empty, this is likely why.
+
+    **Show all logs:**
+    ```yaml
+    logs:
+      since: ''
+    ```
+
+    **Show only the last N lines:**
+    ```yaml
+    logs:
+      tail: '200'
+    ```
+
+    If you are running lazydocker inside a Docker container, logs may not appear at all — this is a known limitation. See [Running in Docker](/guides/running-in-docker).
+  </Accordion>
+
+  <Accordion title="CPU usage graphs are blank">
+    CPU usage stats are unavailable when lazydocker itself runs inside a Docker container. This is a known bug with the containerized runtime. Run lazydocker as a native binary instead to get full metrics support.
+  </Accordion>
+
+  <Accordion title="Services panel is missing">
+    lazydocker only shows the Services panel when it detects a Docker Compose project. It does this by running `docker compose config --quiet` at startup.
+
+    **Fix:** Run lazydocker from the directory containing your `docker-compose.yml`, or pass the file explicitly:
+
+    ```bash
+    lazydocker -f /path/to/docker-compose.yml
+    ```
+
+    If you use a non-standard filename, set the `commandTemplates.dockerCompose` config option to include the `-f` flag permanently.
+  </Accordion>
+
+  <Accordion title="Can't select text in the terminal">
+    lazydocker enables mouse events by default, which intercepts click-and-drag gestures that terminals normally use for text selection.
+
+    **On macOS:** Hold the **Option** key while dragging to select text. For additional options, see [GitHub Issue #190](https://github.com/jesseduffield/lazydocker/issues/190).
+
+    **Disable mouse events entirely:**
+    ```yaml
+    gui:
+      mouseEvents: true   # set to true to disable mouse events (inverted field name)
+    ```
+
+    <Note>
+      The YAML key is `mouseEvents` (not `ignoreMouseEvents`) due to the field tag in the source config struct.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Text doesn't wrap in the main panel">
+    Enable word wrap for the main panel in your config:
+
+    ```yaml
+    gui:
+      wrapMainPanel: true
+    ```
+
+    Note that wrapping can increase CPU usage on large log outputs.
+  </Accordion>
+
+  <Accordion title="Config changes aren't taking effect">
+    Changes to `config.yml` only take effect after you **close and reopen** lazydocker. There is no hot-reload.
+
+    To open your config from inside lazydocker: navigate to the **Project** panel (press `1`), then press `o` to open the config file, or `e` to open it in your editor.
+
+    To find the config file location for your OS:
+
+    | OS | Path |
+    |----|------|
+    | macOS | `~/Library/Application Support/jesseduffield/lazydocker/config.yml` |
+    | Linux | `~/.config/lazydocker/config.yml` |
+    | Windows | `C:\Users\<User>\AppData\Roaming\lazydocker\config.yml` |
+  </Accordion>
+
+  <Accordion title="Docker connection failed at startup">
+    lazydocker could not connect to the Docker daemon. Check that:
+
+    1. Docker is running (`docker ps` should work)
+    2. Your user has permission to access the Docker socket (`/var/run/docker.sock`)
+    3. Docker version is >= 29.0.0 (API >= 1.24): `docker version`
+
+    On Linux, you may need to add your user to the `docker` group:
+
+    ```bash
+    sudo usermod -aG docker $USER
+    # then log out and back in
+    ```
+  </Accordion>
+
+  <Accordion title="IntelliSense not working in VS Code">
+    lazydocker provides a JSON Schema for `config.yml` via [SchemaStore](https://json.schemastore.org/lazydocker.json). To enable auto-complete and validation in VS Code:
+
+    1. Install the [YAML extension by Red Hat](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+    2. IntelliSense is automatic if your config is in one of the standard paths above.
+
+    If you use a custom config path, add this comment at the top of your `config.yml`:
+
+    ```yaml
+    # yaml-language-server: $schema=https://json.schemastore.org/lazydocker.json
+    ```
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,70 @@
+---
+title: "Replacements: shorten image names in the Images panel"
+description: "Use imageNamePrefixes to replace long ECR and container registry URLs with short labels, making the Images panel readable at a glance."
+---
+
+The `replacements` section of `config.yml` lets you substitute long image name prefixes with shorter labels. This is most useful when you pull images from private registries like AWS ECR, where the registry URL can be 50+ characters long and makes the Images panel hard to scan.
+
+## `imageNamePrefixes`
+
+`imageNamePrefixes` is a map from full prefix string to replacement label. lazydocker applies the substitution when displaying image names throughout the UI.
+
+| Key                  | Type                | Default | Description                                               |
+| -------------------- | ------------------- | ------- | --------------------------------------------------------- |
+| `imageNamePrefixes`  | map[string]string   | `{}`    | Map of registry URL prefix → short display label          |
+
+## Example
+
+```yaml
+replacements:
+  imageNamePrefixes:
+    '123456789012.dkr.ecr.us-east-1.amazonaws.com': '<prod>'
+    '923456789999.dkr.ecr.us-east-1.amazonaws.com': '<dev>'
+```
+
+With this config, an image named:
+
+```
+123456789012.dkr.ecr.us-east-1.amazonaws.com/my-service:latest
+```
+
+appears in lazydocker as:
+
+```
+<prod>/my-service:latest
+```
+
+## Use cases
+
+**AWS ECR registries** are the most common case. Each AWS account and region produces a unique registry hostname like `012345678901.dkr.ecr.eu-west-1.amazonaws.com`. If you work across multiple accounts (production, staging, development), these prefixes all look similar and take up most of the visible width in the Images panel.
+
+**Other private registries** — such as Google Artifact Registry (`europe-docker.pkg.dev/my-project/my-repo`) or a self-hosted Harbor instance — can be shortened the same way.
+
+<CodeGroup>
+
+```yaml AWS ECR (multiple accounts)
+replacements:
+  imageNamePrefixes:
+    '123456789012.dkr.ecr.us-east-1.amazonaws.com': '<prod>'
+    '923456789999.dkr.ecr.us-east-1.amazonaws.com': '<dev>'
+    '111122223333.dkr.ecr.eu-west-1.amazonaws.com': '<eu-prod>'
+```
+
+```yaml Google Artifact Registry
+replacements:
+  imageNamePrefixes:
+    'europe-docker.pkg.dev/my-project/backend': 'backend'
+    'europe-docker.pkg.dev/my-project/frontend': 'frontend'
+```
+
+```yaml Self-hosted registry
+replacements:
+  imageNamePrefixes:
+    'registry.internal.example.com:5000': 'internal'
+```
+
+</CodeGroup>
+
+<Tip>
+  Keep replacement labels short (under 10 characters) so they fit comfortably in the Images panel alongside the image name and tag.
+</Tip>

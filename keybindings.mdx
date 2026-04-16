@@ -1,0 +1,131 @@
+---
+title: "Lazydocker keybindings reference guide"
+description: "A complete reference for every keyboard shortcut in lazydocker, organized by panel context, including global navigation and mouse support notes."
+---
+
+Every action in lazydocker is keyboard-driven. Keybindings are organized by the panel that must be focused for them to take effect, with a small set of global shortcuts that work from anywhere in the UI. The bottom status bar always displays the most relevant bindings for the currently focused panel.
+
+## Global keybindings
+
+These shortcuts work regardless of which panel is focused.
+
+| Key | Action |
+|-----|--------|
+| `1` | Focus the projects panel |
+| `2` | Focus the services panel |
+| `3` | Focus the containers panel |
+| `4` | Focus the images panel |
+| `5` | Focus the volumes panel |
+| `6` | Focus the networks panel |
+| `+` | Cycle to the next screen mode (normal → half → fullscreen) |
+| `_` | Cycle to the previous screen mode |
+
+## Project panel
+
+| Key | Action |
+|-----|--------|
+| `e` | Edit the lazydocker config file in your `$EDITOR` |
+| `o` | Open the lazydocker config file with the OS default app |
+| `m` | View all compose project logs in a subprocess |
+| `enter` | Focus the main panel |
+| `[` | Previous tab in the main panel |
+| `]` | Next tab in the main panel |
+| `/` | Filter the project list |
+
+## Services panel
+
+The services panel is only visible when lazydocker detects a docker compose project.
+
+| Key | Action |
+|-----|--------|
+| `u` | Bring up the selected service (`docker compose up -d <service>`) |
+| `U` | Bring up the entire project (`docker compose up -d`) |
+| `d` | Open the remove-containers menu for the service |
+| `D` | Open the down menu for the project (down, or down with volumes) |
+| `s` | Stop the selected service |
+| `S` | Start the selected service |
+| `p` | Pause or unpause the service's container |
+| `r` | Restart the service |
+| `R` | Open the restart options menu (restart, recreate, or rebuild) |
+| `a` | Attach to the service's container as a subprocess |
+| `m` | View the service logs in a subprocess |
+| `E` | Exec a shell inside the service's container |
+| `w` | Open the first exposed port in your browser (http) |
+| `c` | Run a predefined custom command from your config |
+| `b` | View bulk commands for the project |
+| `enter` | Focus the main panel |
+| `[` | Previous tab in the main panel |
+| `]` | Next tab in the main panel |
+| `/` | Filter the services list |
+
+## Containers panel
+
+| Key | Action |
+|-----|--------|
+| `d` | Open the remove-container menu |
+| `e` | Toggle hiding/showing stopped (exited) containers |
+| `p` | Pause or unpause the container |
+| `s` | Stop the container (with confirmation) |
+| `r` | Restart the container |
+| `a` | Attach to the container as a subprocess |
+| `m` | View container logs in a subprocess |
+| `E` | Exec a shell inside the container |
+| `w` | Open the first exposed port in your browser (http) |
+| `c` | Run a predefined custom command from your config |
+| `b` | View bulk commands (stop all, remove all, prune) |
+| `enter` | Focus the main panel |
+| `[` | Previous tab in the main panel |
+| `]` | Next tab in the main panel |
+| `/` | Filter the containers list |
+
+## Images panel
+
+| Key | Action |
+|-----|--------|
+| `d` | Open the remove-image menu (remove, force remove, no-prune variants) |
+| `c` | Run a predefined custom command from your config |
+| `b` | View bulk commands (prune images) |
+| `enter` | Focus the main panel |
+| `[` | Previous tab in the main panel |
+| `]` | Next tab in the main panel |
+| `/` | Filter the images list |
+
+## Volumes panel
+
+| Key | Action |
+|-----|--------|
+| `d` | Open the remove-volume menu (remove or force remove) |
+| `c` | Run a predefined custom command from your config |
+| `b` | View bulk commands (prune volumes) |
+| `enter` | Focus the main panel |
+| `[` | Previous tab in the main panel |
+| `]` | Next tab in the main panel |
+| `/` | Filter the volumes list |
+
+## Networks panel
+
+| Key | Action |
+|-----|--------|
+| `d` | Remove the selected network |
+| `c` | Run a predefined custom command from your config |
+| `b` | View bulk commands (prune networks) |
+| `enter` | Focus the main panel |
+| `[` | Previous tab in the main panel |
+| `]` | Next tab in the main panel |
+| `/` | Filter the networks list |
+
+## Main panel
+
+The main panel is the large right-hand view that shows logs, stats, config, and other detail content.
+
+| Key | Action |
+|-----|--------|
+| `esc` | Return focus to the side panel |
+
+## Mouse support and text selection
+
+lazydocker supports mouse clicks for focusing panels and selecting list items. Mouse events are enabled by default and can be disabled by setting `gui.mouseEvents: true` in your config.
+
+<Note>
+On macOS, hold the **Option** key while clicking and dragging to select text in the main panel for copying. Without holding Option, clicks are captured by lazydocker's mouse event handler instead of being passed to the terminal's text selection.
+</Note>

@@ -1,0 +1,197 @@
+---
+title: "GUI configuration options for the lazydocker UI"
+description: "Reference for every gui config field: panel widths, border styles, theme colors, container status display, screen modes, and scroll behavior."
+---
+
+The `gui` section of `config.yml` controls the visual appearance and interactive behavior of the lazydocker terminal interface. All keys are in camelCase in the config file.
+
+```yaml
+gui:
+  scrollHeight: 2
+  language: "auto"
+  border: "rounded"
+  sidePanelWidth: 0.3333
+  showBottomLine: true
+  screenMode: "normal"
+  containerStatusHealthStyle: "long"
+  wrapMainPanel: true
+  expandFocusedSidePanel: false
+  returnImmediately: false
+  scrollPastBottom: false
+  showAllContainers: false
+  legacySortContainers: false
+  mouseEvents: false
+  theme:
+    activeBorderColor:
+      - green
+      - bold
+    inactiveBorderColor:
+      - default
+    selectedLineBgColor:
+      - blue
+    optionsTextColor:
+      - blue
+```
+
+## Scroll and navigation
+
+| Key                | Type  | Default | Description                                              |
+| ------------------ | ----- | ------- | -------------------------------------------------------- |
+| `scrollHeight`     | int   | `2`     | Number of lines scrolled per scroll action in the main panel |
+| `scrollPastBottom` | bool  | `false` | Allow scrolling past the last line of the main panel     |
+| `wrapMainPanel`    | bool  | `true`  | Word-wrap long lines in the main panel                   |
+
+```yaml
+gui:
+  scrollHeight: 5
+  scrollPastBottom: true
+  wrapMainPanel: false
+```
+
+## Language
+
+| Key        | Type   | Default  | Allowed values                    |
+| ---------- | ------ | -------- | --------------------------------- |
+| `language` | string | `"auto"` | `auto`, `en`, `pl`, `nl`, `de`, `tr` |
+
+`auto` detects the language from your system locale and falls back to English if the locale isn't supported.
+
+```yaml
+gui:
+  language: "de"
+```
+
+## Panel layout
+
+| Key                      | Type    | Default  | Description                                                           |
+| ------------------------ | ------- | -------- | --------------------------------------------------------------------- |
+| `sidePanelWidth`         | float   | `0.3333` | Width of side panels as a fraction of the total screen width          |
+| `showBottomLine`         | bool    | `true`   | Show the bottom bar containing keybinding hints and app status        |
+| `expandFocusedSidePanel` | bool    | `false`  | Give extra vertical space to the focused side panel (accordion effect) |
+
+```yaml
+gui:
+  sidePanelWidth: 0.25
+  showBottomLine: true
+  expandFocusedSidePanel: true
+```
+
+## Screen mode
+
+| Key          | Type   | Default    | Allowed values                    |
+| ------------ | ------ | ---------- | --------------------------------- |
+| `screenMode` | string | `"normal"` | `normal`, `half`, `fullscreen`    |
+
+Sets the initial screen mode when lazydocker starts. You can cycle through modes at runtime with the relevant keybinding.
+
+```yaml
+gui:
+  screenMode: "fullscreen"
+```
+
+## Border style
+
+| Key      | Type   | Default     | Allowed values                          |
+| -------- | ------ | ----------- | --------------------------------------- |
+| `border` | string | `"rounded"` | `rounded`, `single`, `double`, `hidden` |
+
+```yaml
+gui:
+  border: "single"
+```
+
+## Container status display
+
+| Key                          | Type   | Default  | Allowed values          |
+| ---------------------------- | ------ | -------- | ----------------------- |
+| `containerStatusHealthStyle` | string | `"long"` | `long`, `short`, `icon` |
+
+Controls how container status and health are shown in the Containers panel:
+
+- `long` — full words, e.g. `running`, `healthy`
+- `short` — one or two characters, e.g. `r`, `h`
+- `icon` — Unicode emoji
+
+```yaml
+gui:
+  containerStatusHealthStyle: "icon"
+```
+
+## Containers panel content
+
+| Key                    | Type | Default | Description                                                                                       |
+| ---------------------- | ---- | ------- | ------------------------------------------------------------------------------------------------- |
+| `showAllContainers`    | bool | `false` | Show all containers from `docker ps -a`, including those linked to a Compose service              |
+| `legacySortContainers` | bool | `false` | Use the legacy sort order instead of sorting containers by status                                 |
+
+By default, lazydocker hides containers that are already represented by a service in the Services panel. Set `showAllContainers: true` if you run multiple containers per service or use Docker without Compose.
+
+```yaml
+gui:
+  showAllContainers: true
+  legacySortContainers: false
+```
+
+## Subprocess behavior
+
+| Key                 | Type | Default | Description                                                                                           |
+| ------------------- | ---- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `returnImmediately` | bool | `false` | Skip the "press Enter to return to lazydocker" prompt after a subprocess exits                        |
+
+Set this to `true` if you frequently run subprocesses whose output you don't need to read before returning to the UI.
+
+```yaml
+gui:
+  returnImmediately: true
+```
+
+## Mouse support
+
+| Key           | Type | Default | Description                                    |
+| ------------- | ---- | ------- | ---------------------------------------------- |
+| `mouseEvents` | bool | `false` | Disable mouse interaction entirely when `true`  |
+
+<Note>
+  The YAML key is `mouseEvents` but the behavior is "ignore mouse events" — setting it to `true` disables the mouse.
+</Note>
+
+```yaml
+gui:
+  mouseEvents: true
+```
+
+## Theme
+
+The `theme` sub-key configures the colors of panel borders and selected items. Each value is an array of color attributes, with a maximum of one actual color name per array. Additional entries can be style modifiers.
+
+| Key                   | Type       | Default                   | Description                                       |
+| --------------------- | ---------- | ------------------------- | ------------------------------------------------- |
+| `activeBorderColor`   | []string   | `["green", "bold"]`       | Border color of the currently focused panel       |
+| `inactiveBorderColor` | []string   | `["default"]`             | Border color of unfocused panels                  |
+| `selectedLineBgColor` | []string   | `["blue"]`                | Background color of the selected row in a panel   |
+| `optionsTextColor`    | []string   | `["blue"]`                | Color of the options/keybinding text              |
+
+### Available color values
+
+| Type      | Values                                                                 |
+| --------- | ---------------------------------------------------------------------- |
+| Colors    | `default`, `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white` |
+| Modifiers | `bold`, `reverse`, `underline`                                         |
+
+<Tip>
+  `reverse` inverts the foreground and background colors, which is useful for high-contrast themes.
+</Tip>
+
+```yaml
+gui:
+  theme:
+    activeBorderColor:
+      - cyan
+      - bold
+    inactiveBorderColor:
+      - black
+    selectedLineBgColor:
+      - reverse
+    optionsTextColor:
+      - white
+```

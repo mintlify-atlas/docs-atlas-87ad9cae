@@ -1,0 +1,196 @@
+---
+title: "Understanding lazydocker's panel layout"
+description: "Learn how lazydocker's six side panels and main panel work, what each panel displays, and how to navigate tabs, screen modes, and filters."
+---
+
+lazydocker's interface is split into two areas: a column of **side panels** on the left that list Docker resources, and a **main panel** on the right that shows detailed information about the selected item. You switch between side panels using the number keys `1`–`6`, and you move into the main panel by pressing `enter`. The `esc` key returns you from the main panel back to the side panel.
+
+## Screen modes
+
+You can expand the main panel at any time by cycling through three screen modes with `+` (forward) and `_` (backward):
+
+| Mode | Description |
+|------|-------------|
+| `normal` | Side panels and main panel share the screen (default) |
+| `half` | Main panel takes roughly half the screen width |
+| `fullscreen` | Main panel fills the entire screen |
+
+The default mode on startup can be set in your config:
+
+```yaml
+gui:
+  screenMode: normal  # normal | half | fullscreen
+```
+
+## Side panel width
+
+By default the side panels occupy one-third of the screen width. You can adjust this with the `sidePanelWidth` setting, which accepts a decimal fraction:
+
+```yaml
+gui:
+  sidePanelWidth: 0.3333  # default — side panels take 33% of screen width
+```
+
+Setting `expandFocusedSidePanel: true` adds an accordion effect where the focused side panel grows slightly taller than the others.
+
+## Filtering
+
+Every side panel supports live filtering. Press `/` to open a filter prompt, type to narrow the list, and press `esc` to clear the filter. Filtering is case-insensitive and matches against the item's display name.
+
+---
+
+## Project panel (key: `1`)
+
+The project panel lists all docker compose projects that lazydocker has discovered by examining container labels. It always includes the local project — the one whose `docker-compose.yml` lives in your working directory — even if it has no running containers.
+
+Selecting a different project filters the Services and Containers panels to show only items belonging to that project.
+
+**Main panel tabs:**
+
+| Tab | Content |
+|-----|---------|
+| Logs | Combined log stream for the entire compose project (`docker compose logs --tail=300 --follow`) |
+| Config | The parsed docker compose configuration (`docker compose config`), displayed as syntax-highlighted YAML |
+| Credits | lazydocker version info and your effective config (defaults merged with your `config.yml`) |
+
+**Available actions:**
+
+- `e` — Edit your lazydocker `config.yml` directly in `$EDITOR`
+- `o` — Open your lazydocker `config.yml` with the OS default application
+- `m` — View all project logs in a full subprocess (no tail limit)
+- `enter` — Focus the main panel to scroll through logs or config
+
+---
+
+## Services panel (key: `2`)
+
+The services panel shows every service defined in your docker compose file. lazydocker hides this panel automatically if it detects you are not inside a docker compose project. Services are sorted so that those with a running container appear first; within each group they are sorted alphabetically.
+
+**Main panel tabs:**
+
+| Tab | Content |
+|-----|---------|
+| Logs | Live log stream for the service's container |
+| Stats | CPU and memory usage graphs (refreshed every second) |
+| Container env | Environment variables passed to the service's container |
+| Container config | Container ID, image, command, labels, mounts, and ports, followed by the full inspect payload as YAML |
+| Top | Running processes inside the service's container (`docker compose top`), refreshed every second |
+
+**Available actions:**
+
+- `u` — Bring up the selected service in detached mode
+- `U` — Bring up the entire project (`docker compose up -d`)
+- `d` — Open a menu to remove the service's containers (with or without volumes)
+- `D` — Open a menu to bring the project down (down, or down with volumes)
+- `s` — Stop the service
+- `S` — Start the service
+- `p` — Pause or unpause the service's container
+- `r` — Restart the service
+- `R` — Open the restart options menu: restart, recreate (`--force-recreate`), or rebuild (`--build`)
+- `a` — Attach to the service's container interactively
+- `m` — Open service logs in a full subprocess
+- `E` — Exec a shell in the service's container
+- `w` — Open the first exposed port in your browser
+- `c` / `b` — Run custom or bulk commands
+
+<Note>
+Compose commands such as up, stop, restart, and rebuild only work on services that belong to your **local** project (the one in your current working directory). Services discovered from other compose projects can still be paused, stopped via their container, and restarted via their container.
+</Note>
+
+---
+
+## Containers panel (key: `3`)
+
+The containers panel lists Docker containers. By default, lazydocker only shows containers that are **not** directly linked to a service in the current compose project — i.e., standalone or one-off containers. You can show all containers by enabling `showAllContainers` in your config, or by pressing `e` to toggle stopped containers.
+
+Containers are sorted by state (running → exited → created) and then alphabetically by name. The legacy alphabetical-only sort can be restored with `legacySortContainers: true`.
+
+**Main panel tabs:**
+
+| Tab | Content |
+|-----|---------|
+| Logs | Live log stream from the container (last 60 minutes by default) |
+| Stats | CPU and memory usage graphs, refreshed every second |
+| Env | Environment variables in `KEY: value` format |
+| Config | Container ID, name, image, command, labels, mounts, ports, and full inspect YAML |
+| Top | Running processes inside the container (`docker top`), refreshed every second |
+
+**Available actions:**
+
+- `d` — Open a remove menu (remove, or remove with volumes)
+- `e` — Toggle showing/hiding exited containers
+- `p` — Pause or unpause the container
+- `s` — Stop the container (requires confirmation)
+- `r` — Restart the container
+- `a` — Attach to the container interactively
+- `m` — Open container logs in a full subprocess
+- `E` — Exec a shell inside the container
+- `w` — Open the first exposed port in your browser
+- `c` / `b` — Run custom or bulk commands (stop all, remove all, prune)
+
+---
+
+## Images panel (key: `4`)
+
+The images panel lists all local Docker images. Images named `<none>` are sorted to the bottom; all others are sorted alphabetically by name, then tag, then ID.
+
+**Main panel tabs:**
+
+| Tab | Content |
+|-----|---------|
+| Config | Image name, ID, tags, size, creation date, and layer history |
+
+**Available actions:**
+
+- `d` — Open a remove menu with four options: remove, remove without pruning children, force remove, and force remove without pruning children
+- `c` — Run a custom command against the selected image
+- `b` — View bulk commands (prune dangling images)
+
+---
+
+## Volumes panel (key: `5`)
+
+The volumes panel lists all Docker volumes. Volumes that have labels are sorted first (they are typically the ones you care about most); within each group, volumes are sorted alphabetically.
+
+**Main panel tabs:**
+
+| Tab | Content |
+|-----|---------|
+| Config | Volume name, driver, scope, mountpoint, labels, options, status, and usage data (reference count and size) |
+
+**Available actions:**
+
+- `d` — Open a remove menu (remove or force remove)
+- `c` — Run a custom command against the selected volume
+- `b` — View bulk commands (prune unused volumes)
+
+---
+
+## Networks panel (key: `6`)
+
+The networks panel lists all Docker networks, sorted alphabetically by name.
+
+**Main panel tabs:**
+
+| Tab | Content |
+|-----|---------|
+| Config | Network ID, name, driver, scope, IPv6 enabled, internal, attachable, ingress flags, connected containers, labels, and options |
+
+**Available actions:**
+
+- `d` — Remove the selected network
+- `c` — Run a custom command against the selected network
+- `b` — View bulk commands (prune unused networks)
+
+---
+
+## Main panel
+
+The main panel on the right side of the screen renders the currently selected tab for whatever item is highlighted in the active side panel. You can scroll the main panel with your mouse or keyboard. Word wrapping is enabled by default and can be controlled with:
+
+```yaml
+gui:
+  wrapMainPanel: true
+```
+
+After pressing `enter` to focus the main panel, press `esc` to return focus to the side panel. Use `[` and `]` (while the side panel is focused) to cycle through the available tabs without moving into the main panel.

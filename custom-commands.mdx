@@ -1,0 +1,282 @@
+---
+title: "Extending lazydocker with custom commands"
+description: "Define your own commands in config.yml to run against containers, services, images, volumes, and networks directly from the lazydocker UI."
+---
+
+Custom commands let you add your own actions to the `c` menu that appears when you press `c` in any panel. You define them once in your `config.yml` and lazydocker renders them as a searchable list tied to the currently selected resource. Bulk commands work the same way but appear in the `b` menu and are designed for project-wide operations rather than single-item actions.
+
+## Where commands are defined
+
+Open your config file by pressing `o` in the project panel (or `e` to edit it directly). Custom commands live under the `customCommands` key, organized by panel:
+
+```yaml
+customCommands:
+  containers: []
+  services: []
+  images: []
+  volumes: []
+  networks: []
+```
+
+Bulk commands use the same structure but are placed under `bulkCommands`:
+
+```yaml
+bulkCommands:
+  containers: []
+  services: []
+  images: []
+  volumes: []
+  networks: []
+```
+
+## CustomCommand fields
+
+Each command is a YAML object with the following fields:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Display name shown in the menu |
+| `command` | string | yes | The shell command to run; supports Go templates |
+| `attach` | bool | no | When `true`, lazydocker suspends and hands control to the command as an interactive subprocess. When `false` (default), the command runs in the background |
+| `shell` | bool | no | When `true`, the command is invoked via `/bin/bash -c "{command}"`, enabling shell features like pipes and redirections |
+| `serviceNames` | []string | no | Restricts the command to only appear when one of the named services is selected (services panel only) |
+
+<Note>
+`attach: true` is required for any interactive command — shells, editors, pagers, or anything that reads from stdin or writes interactive output to the terminal.
+</Note>
+
+## Template variables
+
+The `command` string is processed as a [Go template](https://pkg.go.dev/text/template) before execution. Three variables are available depending on which panel you are in:
+
+### `{{ .DockerCompose }}`
+
+Expands to your configured docker compose command, which defaults to `docker compose`. If you have customized `commandTemplates.dockerCompose` (for example to combine multiple compose files), that value is used here automatically.
+
+```yaml
+commandTemplates:
+  dockerCompose: "docker compose -f docker-compose.yml -f docker-compose.override.yml"
+```
+
+### `{{ .Container }}`
+
+Available in the containers panel (and the services panel when a container is linked). Exposes the full Docker container inspect struct. Common fields:
+
+| Template expression | Value |
+|---------------------|-------|
+| `{{ .Container.ID }}` | Full container ID |
+| `{{ .Container.Name }}` | Container name |
+| `{{ .Container.Container.ImageID }}` | Image ID the container was created from |
+| `{{ .Container.Container.State }}` | Container state string (e.g. `running`) |
+
+### `{{ .Service }}`
+
+Available in the services panel. Exposes service-level data:
+
+| Template expression | Value |
+|---------------------|-------|
+| `{{ .Service.Name }}` | Service name as defined in `docker-compose.yml` |
+| `{{ .Service.ID }}` | Internal service ID |
+
+---
+
+## Custom commands for containers
+
+Add entries under `customCommands.containers`. Each command receives `{{ .Container }}` in scope.
+
+<CodeGroup>
+
+```yaml Open a bash shell
+customCommands:
+  containers:
+    - name: bash
+      attach: true
+      command: "docker exec -it {{ .Container.ID }} bash"
+```
+
+```yaml Tail logs with grep
+customCommands:
+  containers:
+    - name: grep logs
+      attach: true
+      shell: true
+      command: "docker logs --follow {{ .Container.ID }} 2>&1 | grep ERROR"
+```
+
+```yaml Inspect environment variables
+customCommands:
+  containers:
+    - name: print env
+      attach: true
+      command: "docker exec {{ .Container.ID }} env"
+```
+
+</CodeGroup>
+
+---
+
+## Custom commands for services
+
+Add entries under `customCommands.services`. Each command receives both `{{ .Service }}` and `{{ .Container }}` (when a container is linked to the service) in scope. You can also receive `{{ .DockerCompose }}` to reuse your compose command configuration.
+
+<CodeGroup>
+
+```yaml Open a shell in the service container
+customCommands:
+  services:
+    - name: shell
+      attach: true
+      command: "{{ .DockerCompose }} exec {{ .Service.Name }} /bin/sh"
+```
+
+```yaml Run database migrations (rails example)
+customCommands:
+  services:
+    - name: rails migrate
+      attach: true
+      serviceNames:
+        - api
+        - web
+      command: "{{ .DockerCompose }} exec {{ .Service.Name }} bundle exec rails db:migrate"
+```
+
+```yaml Run an arbitrary one-off task
+customCommands:
+  services:
+    - name: yarn install
+      attach: true
+      serviceNames:
+        - frontend
+      command: "{{ .DockerCompose }} exec {{ .Service.Name }} yarn install"
+```
+
+</CodeGroup>
+
+<Tip>
+Use `serviceNames` to restrict a command to only the relevant services. For example, a `rails migrate` command should only appear when the `api` or `web` service is selected, not for a Redis or Postgres service.
+</Tip>
+
+---
+
+## Custom commands for images, volumes, and networks
+
+The same pattern applies to images, volumes, and networks. Template variables for those panels expose `{{ .Image }}`, `{{ .Volume }}`, and `{{ .Network }}` respectively.
+
+<CodeGroup>
+
+```yaml Retag and push an image
+customCommands:
+  images:
+    - name: retag and push
+      attach: true
+      shell: true
+      command: "docker tag {{ .Image.ID }} myregistry.example.com/myimage:latest && docker push myregistry.example.com/myimage:latest"
+```
+
+```yaml Inspect a volume's contents
+customCommands:
+  volumes:
+    - name: browse volume
+      attach: true
+      command: "docker run --rm -it -v {{ .Volume.Name }}:/data busybox sh"
+```
+
+</CodeGroup>
+
+---
+
+## Bulk commands
+
+Bulk commands appear in the `b` menu and are intended for operations that apply to the entire project or all items of a given type — not just the currently selected item. They follow the same YAML structure as custom commands.
+
+lazydocker ships with a set of built-in bulk commands for services. You can add your own alongside them:
+
+<CodeGroup>
+
+```yaml Default built-in service bulk commands
+bulkCommands:
+  services:
+    - name: up
+      command: "{{ .DockerCompose }} up -d"
+
+    - name: up (attached)
+      attach: true
+      command: "{{ .DockerCompose }} up"
+
+    - name: stop
+      command: "{{ .DockerCompose }} stop"
+
+    - name: pull
+      attach: true
+      command: "{{ .DockerCompose }} pull"
+
+    - name: build
+      attach: true
+      command: "{{ .DockerCompose }} build --parallel --force-rm"
+
+    - name: down
+      command: "{{ .DockerCompose }} down"
+
+    - name: down with volumes
+      command: "{{ .DockerCompose }} down --volumes"
+
+    - name: down with images
+      command: "{{ .DockerCompose }} down --rmi all"
+
+    - name: down with volumes and images
+      command: "{{ .DockerCompose }} down --volumes --rmi all"
+```
+
+```yaml Custom bulk command example
+bulkCommands:
+  services:
+    - name: restart all (force recreate)
+      attach: true
+      command: "{{ .DockerCompose }} up -d --force-recreate"
+```
+
+</CodeGroup>
+
+<Warning>
+The built-in bulk commands for containers include **stop all containers**, **remove all containers**, and **prune containers**. These are destructive operations — lazydocker will ask for confirmation before running them.
+</Warning>
+
+---
+
+## Full working example
+
+The following config snippet adds a complete set of custom commands for a typical Rails + Postgres compose project:
+
+```yaml
+customCommands:
+  services:
+    - name: rails console
+      attach: true
+      serviceNames:
+        - api
+      command: "{{ .DockerCompose }} exec {{ .Service.Name }} bundle exec rails console"
+
+    - name: rails migrate
+      attach: true
+      serviceNames:
+        - api
+      command: "{{ .DockerCompose }} exec {{ .Service.Name }} bundle exec rails db:migrate"
+
+    - name: psql
+      attach: true
+      serviceNames:
+        - db
+        - postgres
+      command: "{{ .DockerCompose }} exec {{ .Service.Name }} psql -U postgres"
+
+  containers:
+    - name: bash
+      attach: true
+      command: "docker exec -it {{ .Container.ID }} bash"
+
+    - name: sh
+      attach: true
+      command: "docker exec -it {{ .Container.ID }} sh"
+```
+
+After saving your config, press `c` in the services or containers panel to see your new commands in the menu.

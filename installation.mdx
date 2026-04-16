@@ -1,0 +1,190 @@
+---
+title: "Install lazydocker on macOS, Linux, and Windows"
+description: "Install lazydocker using Homebrew, Scoop, Chocolatey, asdf, a binary release, Go, AUR, or Docker. Covers all platforms and package managers."
+---
+
+lazydocker is distributed as a single binary with no runtime dependencies. Pick the installation method that matches your platform and toolchain.
+
+## Homebrew (macOS and Linux)
+
+Homebrew is the recommended method on macOS and Linux. The tap formula is updated more frequently than the Homebrew core formula.
+
+<CodeGroup>
+
+```bash Tap (recommended)
+brew install jesseduffield/lazydocker/lazydocker
+```
+
+```bash Core
+brew install lazydocker
+```
+
+</CodeGroup>
+
+## Windows
+
+<Tabs>
+  <Tab title="Scoop">
+    ```bash
+    scoop install lazydocker
+    ```
+  </Tab>
+  <Tab title="Chocolatey">
+    ```bash
+    choco install lazydocker
+    ```
+  </Tab>
+</Tabs>
+
+## asdf-vm
+
+Use the [asdf-lazydocker plugin](https://github.com/comdotlinux/asdf-lazydocker) to manage lazydocker versions with [asdf](https://asdf-vm.com/).
+
+**Step 1 — add the plugin (once):**
+
+```bash
+asdf plugin add lazydocker https://github.com/comdotlinux/asdf-lazydocker.git
+```
+
+**Step 2 — install and set the global version:**
+
+```bash
+asdf list all lazydocker
+asdf install lazydocker latest
+asdf global lazydocker latest
+```
+
+Run the second block again whenever you want to upgrade.
+
+## Binary release
+
+You can download a pre-built binary directly from the [releases page](https://github.com/jesseduffield/lazydocker/releases).
+
+For Linux, an automated install/update script is also available. It installs the binary to `$HOME/.local/bin` by default. Set the `DIR` environment variable to change the destination:
+
+<Warning>
+  Always review scripts before piping them into bash. Read the [install script source](https://github.com/jesseduffield/lazydocker/blob/master/scripts/install_update_linux.sh) before running the command below.
+</Warning>
+
+```bash
+curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+```
+
+To install to a custom directory:
+
+```bash
+DIR=/usr/local/bin curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+```
+
+## Go
+
+Requires Go >= **1.19**.
+
+```bash
+go install github.com/jesseduffield/lazydocker@latest
+```
+
+<Note>
+  If you are on Go 1.8 through 1.17, use `go get github.com/jesseduffield/lazydocker` instead. Upgrading to Go 1.19+ is strongly recommended.
+</Note>
+
+The binary is installed to `$GOPATH/bin` (or `$HOME/go/bin` if `GOPATH` is unset). Make sure that directory is on your `PATH`.
+
+## Arch Linux AUR
+
+```bash
+yay -S lazydocker
+```
+
+Any AUR helper that supports the standard interface works in place of `yay`.
+
+## Docker
+
+You can run lazydocker inside a Docker container. It mounts the Docker socket so it can manage your host's containers.
+
+```bash
+docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /yourpath:/.config/jesseduffield/lazydocker \
+  lazyteam/lazydocker
+```
+
+Replace `/yourpath` with a directory on your host where lazydocker should store its config.
+
+To avoid typing that command every time, add an alias to your shell config:
+
+```bash
+echo "alias lzd='docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock -v /yourpath/config:/.config/jesseduffield/lazydocker lazyteam/lazydocker'" >> ~/.zshrc
+```
+
+<Note>
+  When running lazydocker inside a Docker container, log streaming and CPU usage stats are not available due to a known limitation.
+</Note>
+
+**ARM devices:** Pre-built multi-arch images are available on Docker Hub. If you need to build for a specific ARM variant, pass build arguments:
+
+<Tabs>
+  <Tab title="ARM 32-bit v6">
+    ```bash
+    docker build -t lazyteam/lazydocker \
+      --build-arg BASE_IMAGE_BUILDER=arm32v6/golang \
+      --build-arg GOARCH=arm \
+      --build-arg GOARM=6 \
+      https://github.com/jesseduffield/lazydocker.git
+    ```
+  </Tab>
+  <Tab title="ARM 32-bit v7">
+    ```bash
+    docker build -t lazyteam/lazydocker \
+      --build-arg BASE_IMAGE_BUILDER=arm32v7/golang \
+      --build-arg GOARCH=arm \
+      --build-arg GOARM=7 \
+      https://github.com/jesseduffield/lazydocker.git
+    ```
+  </Tab>
+  <Tab title="ARM 64-bit v8">
+    ```bash
+    docker build -t lazyteam/lazydocker \
+      --build-arg BASE_IMAGE_BUILDER=arm64v8/golang \
+      --build-arg GOARCH=arm64 \
+      https://github.com/jesseduffield/lazydocker.git
+    ```
+  </Tab>
+</Tabs>
+
+## Manual (build from source)
+
+You need [Go installed](https://golang.org/doc/install) on your system.
+
+```bash
+git clone https://github.com/jesseduffield/lazydocker.git
+cd lazydocker
+go install
+```
+
+You can also compile and run in a single step without installing:
+
+```bash
+go run main.go
+```
+
+## Verify the installation
+
+After installing, run:
+
+```bash
+lazydocker --version
+```
+
+You should see output similar to:
+
+```
+0.23.3
+Date: 2024-01-15T10:22:00Z
+BuildSource: homebrew
+Commit: abc1234
+OS: darwin
+Arch: arm64
+```
+
+If the command is not found, make sure the binary's directory is on your `PATH`.

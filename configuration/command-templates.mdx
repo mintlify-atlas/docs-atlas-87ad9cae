@@ -1,0 +1,88 @@
+---
+title: "Command templates: customize Docker Compose commands"
+description: "Override every Docker Compose command lazydocker runs, from service restarts to log viewing, and chain multiple compose files with dockerCompose."
+---
+
+The `commandTemplates` section of `config.yml` defines the shell commands that lazydocker runs when you trigger actions in the UI. Every template is a Go template string. The most commonly customized field is `dockerCompose`, because all other templates reference it via `{{ .DockerCompose }}`.
+
+## Key use case: multiple compose files
+
+If your project uses more than one `docker-compose.yml` file, set `dockerCompose` to chain them with `-f` flags. All other templates inherit this automatically.
+
+```yaml
+commandTemplates:
+  dockerCompose: docker compose -f docker-compose.yml -f docker-compose.override.yml
+```
+
+You can also pass compose files on the command line when launching lazydocker:
+
+```bash
+lazydocker -f foo/docker-compose.yml -f bar/docker-compose.yml
+```
+
+## Template variables
+
+Go template variables available in command strings:
+
+| Variable              | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `{{ .DockerCompose }}` | Expands to the value of `commandTemplates.dockerCompose`        |
+| `{{ .Service.Name }}`  | The name of the currently selected service                      |
+| `{{ .Container.ID }}`  | The ID of the currently selected container (custom commands)    |
+
+## Options reference
+
+| Key                       | Default                                                                        | Description                                               |
+| ------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `dockerCompose`           | `docker compose`                                                               | Base Docker Compose invocation used in all other templates |
+| `restartService`          | `{{ .DockerCompose }} restart {{ .Service.Name }}`                             | Restart a single service                                  |
+| `startService`            | `{{ .DockerCompose }} start {{ .Service.Name }}`                               | Start a stopped service                                   |
+| `stopService`             | `{{ .DockerCompose }} stop {{ .Service.Name }}`                                | Stop a running service                                    |
+| `upService`               | `{{ .DockerCompose }} up -d {{ .Service.Name }}`                               | Create and start a single service in detached mode        |
+| `rebuildService`          | `{{ .DockerCompose }} up -d --build {{ .Service.Name }}`                       | Rebuild and start a service                               |
+| `recreateService`         | `{{ .DockerCompose }} up -d --force-recreate {{ .Service.Name }}`              | Force-recreate a service and its dependencies             |
+| `up`                      | `{{ .DockerCompose }} up -d`                                                   | Start all services in detached mode                       |
+| `down`                    | `{{ .DockerCompose }} down`                                                    | Stop and remove all containers                            |
+| `downWithVolumes`         | `{{ .DockerCompose }} down --volumes`                                          | Stop, remove containers, and delete named volumes         |
+| `serviceLogs`             | `{{ .DockerCompose }} logs --since=60m --follow {{ .Service.Name }}`           | Stream recent logs for a service inside lazydocker        |
+| `viewServiceLogs`         | `{{ .DockerCompose }} logs --follow {{ .Service.Name }}`                       | Open full service log stream as a subprocess              |
+| `allLogs`                 | `{{ .DockerCompose }} logs --tail=300 --follow`                                | Stream the last 300 lines from all services               |
+| `viewAlLogs`              | `{{ .DockerCompose }} logs`                                                    | Open unfiltered all-service logs as a subprocess          |
+| `dockerComposeConfig`     | `{{ .DockerCompose }} config`                                                  | Print the resolved Compose configuration                  |
+| `checkDockerComposeConfig`| `{{ .DockerCompose }} config --quiet`                                          | Validate the Compose config (used to detect Compose context) |
+| `serviceTop`              | `{{ .DockerCompose }} top {{ .Service.Name }}`                                 | Show running processes inside a service's container       |
+
+<Note>
+  `viewServiceLogs` and `viewAlLogs` open a subprocess in your terminal with no `--since` filter, so you see the full log history. The `serviceLogs` and `allLogs` variants are used in the lazydocker Logs panel and apply time/line limits for performance.
+</Note>
+
+## Examples
+
+<CodeGroup>
+
+```yaml Multiple compose files
+commandTemplates:
+  dockerCompose: docker compose -f foo/docker-compose.yml -f bar/docker-compose.yml
+```
+
+```yaml Custom restart using force-recreate
+commandTemplates:
+  restartService: '{{ .DockerCompose }} up -d --force-recreate {{ .Service.Name }}'
+```
+
+```yaml Longer log window for in-app view
+commandTemplates:
+  serviceLogs: '{{ .DockerCompose }} logs --since=6h --follow {{ .Service.Name }}'
+  allLogs: '{{ .DockerCompose }} logs --tail=1000 --follow'
+```
+
+```yaml Use legacy docker-compose v1
+commandTemplates:
+  dockerCompose: docker-compose
+```
+
+</CodeGroup>
+
+<Warning>
+  If you add a `commandTemplates:` key to your config with no child values, lazydocker discards all defaults for this section and will likely crash. Always include at least one child key when overriding this section.
+</Warning>
